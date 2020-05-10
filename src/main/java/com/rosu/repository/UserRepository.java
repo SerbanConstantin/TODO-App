@@ -15,7 +15,8 @@ public class UserRepository implements CrudRepository<User, Integer> {
     }
 
     public List<User> findAll() {
-        return null;
+
+        return entityManager.createQuery("SELECT u FROM User u").getResultList();
     }
 
     public void save(User user) {
@@ -28,7 +29,7 @@ public class UserRepository implements CrudRepository<User, Integer> {
         User user = findById(id);
         if (user != null) {
             entityManager.getTransaction().begin();
-            entityManager.remove(id);
+            entityManager.remove(user);
             entityManager.getTransaction().commit();
         }
     }
@@ -39,7 +40,7 @@ public class UserRepository implements CrudRepository<User, Integer> {
             User user = entityManager.find(User.class, id);
             return user;
         } catch (Exception e) {
-            System.out.println("Something went wrong...");
+            System.out.println("Something went wrong");
         }
         return null;
     }
@@ -47,19 +48,15 @@ public class UserRepository implements CrudRepository<User, Integer> {
     public User findByUsername(String username) {
 
         try {
-            User user = (User)
-                    entityManager
-                            .createQuery("SELECT u FROM User u WHERE u.username =: username")
-                            .setParameter("username", username)
-                            .getResultList().get(0);
+            User user = (User) entityManager
+                    .createQuery("SELECT u FROM User u WHERE u.username =: username")
+                    .setParameter("username", username)
+                    .getResultList().get(0);
             return user;
-
         } catch (Exception ex) {
-
         }
-
         return null;
-
 
     }
 }
+

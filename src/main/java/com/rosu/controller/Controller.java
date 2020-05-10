@@ -1,167 +1,194 @@
 package com.rosu.controller;
 
-
+import com.rosu.model.Project;
+import com.rosu.model.SubTask;
 import com.rosu.model.Task;
 import com.rosu.model.User;
+import com.rosu.repository.ProjectRepository;
+import com.rosu.repository.SubTaskRepository;
 import com.rosu.repository.TaskRepository;
 import com.rosu.repository.UserRepository;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.Event;
-import javafx.event.EventHandler;
-import javafx.event.EventType;
+import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
-import javax.swing.event.EventListenerList;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Observable;
+
 
 public class Controller {
-
-
-    public Label lblInformation;
-    public PasswordField pwdFieldConfirmRegister;
-    public PasswordField pwdFieldRegister;
-    public TextField txtFieldUsernameRegister;
-    public Button btnRegister;
-    public TextField txtFieldUsernameLogin;
-    public PasswordField pwdFieldLogin;
-    public Button btnLogin;
-    public Button btnShowPwdRegister;
-    public TextField txtFieldPwdRegister;
-    public TextField txtFieldPwdConfirmRegister;
-    public Button btnShowPwdConfirmRegister;
-    public TextField txtFieldPwdLogin;
+    @FXML
+    public Label lblUsernameLogin;
     public Label lblUsernameRegister;
-    public Label lblPasswordRegister;
-    public Label lblConfirmPasswordRegister;
-    public Button btnShowLogin;
-    public TextField txtFieldTODO;
-    public Button btnInsert;
-    public VBox vBoxTasks;
-    public TableView tblView;
-    public TableColumn colTaskId;
-    public TableColumn colTaskDesc;
-    public TableColumn colUsername;
-    public TabPane tabPane;
-    public Tab tabRegister;
     public Tab tabLogin;
-    public Tab tabAddTask;
+    public Tab tabRegister;
+    public TabPane tabPane;
+    public MenuItem menuItemLogin;
+    public CheckMenuItem menuItemRegister;
+    public Label lblConfirmPasswordRegister;
+    public Label lblPasswordRegister;
+    public TextField txtFieldPwdConfirmRegister;
+    public TextField txtFieldPwdRegister;
+    public PasswordField pwdFieldRegister;
+    public Button btnRegister;
+    public Button btnShowPwdRegister;
+    public Button btnShowConfirmRegister;
+    public Button btnLogin;
+    public PasswordField pwdFieldConfirmRegister;
+    public PasswordField pwdFieldLogin;
+    public TextField txtFieldPwdLogin;
+    public CheckMenuItem menuItemTask;
+    public TextField txtFieldTODO;
+    public VBox vBoxTasks;
+    public Button btnInsert;
+    public TableColumn colTaskDesc;
+    public TableColumn colTaskId;
+    public TableView tblView;
+    public CheckMenuItem menuItemAllTasks;
+    public TableColumn colUsername;
     public Tab tabShowTasks;
-    public VBox vBoxTaskList;
+    public Tab tabAddTask;
     public Tab tabTasks;
-    public VBox vBoxTaskListAllocated;
+    public VBox vBoxTaskList;
+    public VBox vBoxTaskAllocated;
+    public CheckMenuItem menuItemTaskList;
+    public Tab tabTasks2;
+    public VBox vBoxTaskInProgress;
+    public VBox vBoxTaskDone;
+    public Tab tabSubTask;
+    public Button btnSubTask;
+    public TextField txtFieldTODOSubtask;
+    public Button btnInsertsubtask;
+    public VBox vBoxSubTask;
+    public Tab tabShowSubTasks;
+    public TableView tblViewSubTask;
+    public TableColumn colTask;
+    public TableColumn colSubTaskDesc;
+    public TableColumn colSubTaskId;
+    public Button btnlogin;
+    public Button btnregister;
+    public Tab tabAddProject;
+    public Button btnInsertProject;
+    public TextField txtFieldProject;
+    public VBox vBoxProjects;
+    public CheckMenuItem menuItemProject;
+    public Tab tabShowProjects;
+    public TableView tblViewProject;
+    public TableColumn colTasks;
+    public TableColumn colUser;
+    public TableColumn colProjectName;
+    public TableColumn colProjectId;
 
+
+    @FXML
+    private Label lblInformation;
+    @FXML
+    private TextField txtFieldUsernameRegister;
+    @FXML
+    private TextField txtFieldUsernameLogin;
 
     private UserRepository userRepository;
-    private TaskRepository taskRepository;
-
-    private User loggedInUser;
-
     private boolean isConnectionSuccessful = false;
+    private TaskRepository taskRepository;
+    private User loggedInUser;
+    private SubTaskRepository subTaskRepository;
+    private ProjectRepository projectRepository;
 
     public void initialize() {
         try {
             colTaskId.setCellValueFactory(new PropertyValueFactory<Task, Integer>("id"));
             colTaskDesc.setCellValueFactory(new PropertyValueFactory<Task, String>("description"));
             colUsername.setCellValueFactory(new PropertyValueFactory<Task, String>("user"));
+            colSubTaskId.setCellValueFactory(new PropertyValueFactory<SubTask, Integer>("id"));
+            colSubTaskDesc.setCellValueFactory(new PropertyValueFactory<SubTask, String>("description"));
+            colTask.setCellValueFactory(new PropertyValueFactory<SubTask, String>("task"));
+            colProjectId.setCellValueFactory(new PropertyValueFactory<Project, Integer>("project_id"));
+            colProjectName.setCellValueFactory(new PropertyValueFactory<Project, String>("name"));
+            colUser.setCellValueFactory(new PropertyValueFactory<Task, String>("users"));
+            colTasks.setCellValueFactory(new PropertyValueFactory<Task, String>("tasks"));
             persistenceConnection();
-            tabPane.getTabs().clear();
-            tabPane.getTabs().add(tabLogin);
-
         } catch (Exception e) {
             System.out.println("Connection is not allowed");
             isConnectionSuccessful = false;
+            e.printStackTrace();
         }
-
+        tabPane.getTabs().clear();
+        tabPane.getTabs().add(tabRegister);
+        tabPane.getTabs().add(tabLogin);
     }
 
     private void persistenceConnection() {
-        EntityManagerFactory entityManagerFactory =
-                Persistence.createEntityManagerFactory("TODOFx");
+        EntityManagerFactory entityManagerFactory = Persistence.createEntityManagerFactory("TODOFx");
         EntityManager entityManager = entityManagerFactory.createEntityManager();
-
         userRepository = new UserRepository(entityManager);
         taskRepository = new TaskRepository(entityManager);
+        subTaskRepository = new SubTaskRepository(entityManager);
+        projectRepository = new ProjectRepository(entityManager);
     }
 
+    @FXML
     public void registerUser(ActionEvent actionEvent) {
-        lblUsernameFieldRegisterWarning();
-        lblPasswordWarning();
-        lblConfirmPasswordWarning();
-        isAlreadyIn();
-    }
-
-    private void lblUsernameFieldRegisterWarning() {
-        if (txtFieldUsernameRegister.getText().length() < 1) {
-            lblUsernameRegister.setTextFill(Color.RED);
-            lblInformation.setVisible(true);
-            lblInformation.setTextFill(Color.RED);
-            lblInformation.setText("Please fill Username");
-        } else {
-            lblUsernameRegister.setTextFill(Color.BLACK);
-            lblInformation.setVisible(false);
-        }
-    }
-
-    private void lblPasswordWarning() {
-        if (txtFieldPwdRegister.getText().length() < 1) {
-            lblPasswordRegister.setTextFill(Color.RED);
-            lblInformation.setVisible(true);
-            lblInformation.setTextFill(Color.RED);
-            lblInformation.setText("Please fill Password field");
-        } else {
-            lblPasswordRegister.setTextFill(Color.BLACK);
-            lblInformation.setVisible(false);
-        }
-    }
-
-    private void lblConfirmPasswordWarning() {
-        if (txtFieldPwdConfirmRegister.getText().length() < 1) {
-            lblConfirmPasswordRegister.setTextFill(Color.RED);
-            lblInformation.setVisible(true);
-            lblInformation.setTextFill(Color.RED);
-            lblInformation.setText("Please fill Confirm password field");
-        } else {
-            lblConfirmPasswordRegister.setTextFill(Color.BLACK);
-            lblInformation.setVisible(false);
-        }
-    }
-
-    private void isAlreadyIn() {
         User user = userRepository.findByUsername(txtFieldUsernameRegister.getText());
+        //parola trebuie sa fie cu 4cifre dif la sfarsit si cu 3 litere la inceput
+        String passwordPattern = "([a-zA-Z]+[0-9]...)";
+
         if (pwdFieldRegister.getText().equals(pwdFieldConfirmRegister.getText()) && user == null) {
-            user = new User();
-            user.setUsername(txtFieldUsernameRegister.getText());
-            user.setPassword(pwdFieldRegister.getText());
-            userRepository.save(user);
+            if (txtFieldUsernameRegister.getText().length() < 1) {
+                lblUsernameRegister.setTextFill(Color.RED);
+                lblInformation.setVisible(true);
+                lblInformation.setText("Please fill the username!");
+            } else {
+                if ((pwdFieldRegister.getText().matches(passwordPattern))) {
+                    user = new User();
+                    user.setUsername(txtFieldUsernameRegister.getText());
+                    user.setPassword(pwdFieldRegister.getText());
+                    userRepository.save(user);
+                    tabPane.getTabs().remove(tabRegister);
+                    tabPane.getTabs().add(tabLogin);
+                } else {
+                    lblInformation.setVisible(true);
+                    lblInformation.setText("Please insert a passwrod with special characters");
+                    pwdFieldRegister.clear();
+                    pwdFieldConfirmRegister.clear();
+                }
+
+            }
         } else {
-            lblInformation.setText("Is already in");
+            lblInformation.setVisible(true);
+            lblInformation.setTextFill(Color.RED);
+            lblInformation.setText("The user" + " " + txtFieldUsernameRegister.getText() + " is already registered");
+            lblUsernameRegister.setTextFill(Color.BLACK);
         }
+
     }
 
-
-    public void loginUser(ActionEvent actionEvent) {
+    @FXML
+    private void loginUser(ActionEvent actionEvent) {
         loggedInUser = userRepository.findByUsername(txtFieldUsernameLogin.getText());
-        lblInformation.setVisible(true);
-        if(loggedInUser != null) {
+        if (loggedInUser != null) {
             tabPane.getTabs().clear();
+            tabPane.getTabs().add(tabAddProject);
+            tabPane.getTabs().add(tabShowProjects);
             tabPane.getTabs().add(tabAddTask);
             tabPane.getTabs().add(tabTasks);
-
+            tabPane.getTabs().add(tabTasks2);
+            lblInformation.setVisible(true);
             lblInformation.setText("User login succesfull");
-        }
-        else {
+        } else {
+            lblInformation.setVisible(true);
             lblInformation.setText("User not existing");
         }
     }
@@ -186,25 +213,40 @@ public class Controller {
 
     public void showConfirmPassword(ActionEvent actionEvent) {
         if (!txtFieldPwdConfirmRegister.isVisible()) {
-            btnShowPwdConfirmRegister.setText("Hide");
+            btnShowConfirmRegister.setText("Hide");
             showPassword(txtFieldPwdConfirmRegister, pwdFieldConfirmRegister);
-
         } else {
-            btnShowPwdConfirmRegister.setText("Show");
+            btnShowConfirmRegister.setText("Show");
             txtFieldPwdConfirmRegister.setVisible(false);
             pwdFieldConfirmRegister.setVisible(true);
         }
     }
 
-    public void showPasswordLogin(ActionEvent actionEvent) {
-        if (!txtFieldPwdLogin.isVisible()) {
-            btnShowLogin.setText("Hide");
-            showPassword(txtFieldPwdLogin, pwdFieldLogin);
+    public void showRegisterPane(ActionEvent actionEvent) {
+        tabPane.getTabs().add(tabRegister);
+    }
 
-        } else {
-            btnShowLogin.setText("Show");
-            txtFieldPwdLogin.setVisible(false);
-            pwdFieldLogin.setVisible(true);
+    public void showLoginPane(ActionEvent actionEvent) {
+        tabPane.getTabs().add(tabLogin);
+    }
+
+    public void showProjectPane(ActionEvent actionEvent) {
+        tabPane.getTabs().add(tabAddProject);
+        tabPane.getTabs().add(tabShowProjects);
+    }
+
+
+    public void showTaskPane(ActionEvent actionEvent) {
+        tabPane.getTabs().add(tabAddTask);
+    }
+
+    public void showAllTasksPane(ActionEvent actionEvent) {
+        tabPane.getTabs().add(tabShowTasks);
+    }
+
+    public void insertProjectEnter(KeyEvent keyEvent) {
+        if (keyEvent.getCode().equals(KeyCode.ENTER)) {
+            insertProject();
         }
     }
 
@@ -214,60 +256,171 @@ public class Controller {
         }
     }
 
+    public void insertSubTaskEnter(KeyEvent keyEvent) {
+        if (keyEvent.getCode().equals(KeyCode.ENTER)) {
+            insertSubTask();
+        }
+    }
+
+    private void insertProject() {
+        Project project = new Project();
+        project.setCreatedAt(new Date());
+        project.setName(txtFieldProject.getText());
+        List<User> users = project.getUsers();
+        if (users == null) {
+            users = new ArrayList<>();
+        }
+        if (!users.contains(loggedInUser)) {
+            users.add(loggedInUser);
+        }
+        project.setUsers(users);
+        projectRepository.save(project);
+        txtFieldProject.clear();
+        CheckBox checkBox = new CheckBox();
+        checkBox.setText(project.getName());
+        vBoxProjects.getChildren().add(checkBox);
+
+    }
+
     private void insertTask() {
         Task task = new Task();
         task.setCreatedAt(new Date());
         task.setDescription(txtFieldTODO.getText());
-
         taskRepository.save(task);
-
-
+        txtFieldTODO.clear();
         CheckBox checkBox = new CheckBox();
         checkBox.setText(task.getDescription());
-
         vBoxTasks.getChildren().add(checkBox);
+
+    }
+
+    private void insertSubTask() {
+        SubTask subTask = new SubTask();
+        subTask.setDescription(txtFieldTODOSubtask.getText());
+        subTaskRepository.save(subTask);
+        txtFieldTODOSubtask.clear();
+        CheckBox checkBox = new CheckBox();
+        checkBox.setText(subTask.getDescription());
+        vBoxSubTask.getChildren().add(checkBox);
+    }
+
+    public void insertProject(ActionEvent actionEvent) {
+        insertProject();
+    }
+
+    public void insertSubTask(ActionEvent actionEvent) {
+        insertSubTask();
     }
 
     public void insertTask(ActionEvent actionEvent) {
         insertTask();
     }
 
+    public void loadSubTask(Event actionEvent) {
+        tabPane.getTabs().add(tabSubTask);
+        tabPane.getTabs().add(tabShowSubTasks);
+    }
+
+    public void loadProjects(Event event) {
+        vBoxProjects.getChildren().clear();
+        List<Project> projects = projectRepository.findAll();
+        final ObservableList<Project> dbProjects = FXCollections.observableList(projects);
+        tblViewProject.setItems(dbProjects);
+        System.out.println("Loaded Projects");
+    }
+
     public void loadTasks(Event event) {
+        vBoxTasks.getChildren().clear();
         List<Task> tasks = taskRepository.findAll();
         final ObservableList<Task> dbTasks = FXCollections.observableList(tasks);
         tblView.setItems(dbTasks);
         System.out.println("Loaded tasks");
     }
 
+    public void loadSubTasks(Event event) {
+        vBoxSubTask.getChildren().clear();
+        List<SubTask> subTasks = subTaskRepository.findAll();
+        final ObservableList<SubTask> dbSubTasks = FXCollections.observableList(subTasks);
+        tblViewSubTask.setItems(dbSubTasks);
+        System.out.println("Loaded subtasks");
+    }
+
+
     public void loadTaskList(Event event) {
         vBoxTaskList.getChildren().clear();
-        vBoxTaskListAllocated.getChildren().clear();
+        vBoxTaskAllocated.getChildren().clear();
         List<Task> tasks = taskRepository.findAll();
-
-        for (final Task task:tasks
-        ) {
+        for (Task task : tasks) {
             CheckBox checkBox = new CheckBox();
-            checkBox.setWrapText(false);
-
-            if(task.getUser()!=null) {
-                checkBox.setText(task.getId() + ". "
-                        + task.getDescription() + " allocated to " + task.getUser().getUsername());
+            if (task.getUser() != null) {
+                checkBox.setText(task.getId() + " " + task.getDescription() + " " + "allocated to" + " " + task.getUser().getUsername());
                 checkBox.setDisable(true);
-                vBoxTaskListAllocated.getChildren().add(checkBox);
-            }
-            else {
+                vBoxTaskAllocated.getChildren().add(checkBox);
+            } else {
                 vBoxTaskList.getChildren().add(checkBox);
-                checkBox.setText(task.getId() + ". "
-                        + task.getDescription());
+                checkBox.setText(task.getId() + ". " + task.getDescription());
                 checkBox.selectedProperty().addListener((observable, oldValue, newValue) -> {
                     task.setUser(loggedInUser);
+                    task.setInProgress(true);
                     taskRepository.save(task);
-                    task.setInProgress(!newValue);
                     loadTaskList(null);
                 });
-            }
 
+            }
 
         }
     }
+
+    public void loadTaskListInProgress(Event event) {
+        vBoxTaskAllocated.getChildren().clear();
+        vBoxTaskInProgress.getChildren().clear();
+        vBoxTaskDone.getChildren().clear();
+        List<Task> tasks = taskRepository.findAll();
+        for (Task task : tasks) {
+            if (task.isInProgress()) {
+                CheckBox checkBox = new CheckBox(task.getDescription() + " " + "is in progress");
+                checkBox.selectedProperty().addListener((observable, oldValue, newValue) -> {
+                    task.setInProgress(true);
+                    taskRepository.save(task);
+                    vBoxTaskInProgress.getChildren().remove(checkBox);
+                    CheckBox checkBox1 = new CheckBox(task.getDescription() + " " + "is done");
+                    vBoxTaskDone.getChildren().add(checkBox1);
+                });
+                vBoxTaskInProgress.getChildren().add(checkBox);
+
+            } else {
+                CheckBox checkBox1 = new CheckBox(task.getDescription() + " " + "is done");
+                vBoxTaskDone.getChildren().add(checkBox1);
+                checkBox1.selectedProperty().addListener((observable, oldValue, newValue) -> {
+
+                    vBoxTaskDone.getChildren().remove(checkBox1);
+
+                    taskRepository.deleteById(task.getId());
+
+                });
+            }
+        }
+    }
+
+    public void deleteTask(MouseEvent mouseEvent) {
+
+    }
+
+    public void Login(ActionEvent actionEvent) {
+        tabPane.getTabs().clear();
+        tabPane.getTabs().add(tabLogin);
+    }
+
+    public void Register(ActionEvent actionEvent) {
+        tabPane.getTabs().clear();
+        tabPane.getTabs().add(tabRegister);
+    }
+
+
 }
+
+
+
+
+
+

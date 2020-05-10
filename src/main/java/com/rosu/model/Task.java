@@ -13,32 +13,32 @@ import java.util.List;
 @Entity
 @Table(name = "task")
 public class Task {
-
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY) //AUTO , 1, 2, -> POSGRESQL
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "task_id")
     private int id;
-
     private String description;
-
     @ManyToOne
     private User user;
+
+    @OneToMany(mappedBy = "task", cascade = CascadeType.ALL)
+    private List<SubTask> subTasks;
 
     @ManyToOne
     private Project project;
 
-    @OneToMany(mappedBy = "task" , cascade = CascadeType.ALL)
-    private List<SubTask> subtasks;
+
 
     @Column(name = "created_at")
     private Date createdAt;
-
     @Column(name = "in_progress")
     private boolean inProgress;
 
 
-
-
+    @Override
+    public String toString() {
+        return this.description;
+    }
 }
 
 
