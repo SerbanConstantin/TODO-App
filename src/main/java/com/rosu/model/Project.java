@@ -28,5 +28,9 @@ public class Project {
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
     private List<Task> tasks;
 
+    @Override
+    public String toString() {
+        return this.name;
 
+    }
 }

@@ -92,6 +92,15 @@ public class Controller {
     public TableColumn colProjectName;
     public TableColumn colProjectId;
 
+    public CheckBox checkDev;
+    public CheckBox checkAdmin;
+    public ComboBox comboProject;
+    public ComboBox<Task> comboTask;
+    public CheckMenuItem menuAllProjects;
+    public CheckMenuItem menuAllSubtask;
+    public Label txtRolle;
+
+
 
     @FXML
     private Label lblInformation;
@@ -142,7 +151,7 @@ public class Controller {
     @FXML
     public void registerUser(ActionEvent actionEvent) {
         User user = userRepository.findByUsername(txtFieldUsernameRegister.getText());
-        //parola trebuie sa fie cu 4cifre dif la sfarsit si cu 3 litere la inceput
+        //password ( 4 cifre dif la sfarsit + 3 litere la inceput)
         String passwordPattern = "([a-zA-Z]+[0-9]...)";
 
         if (pwdFieldRegister.getText().equals(pwdFieldConfirmRegister.getText()) && user == null) {
@@ -165,6 +174,14 @@ public class Controller {
                     pwdFieldConfirmRegister.clear();
                 }
 
+            }
+            if ((checkAdmin.isSelected() | checkDev.isSelected())) {
+                tabPane.getTabs().add(tabLogin);
+            } else {
+                txtRolle.setVisible(true);
+                txtRolle.setTextFill(Color.RED);
+                txtRolle.setText("Please choose role");
+                tabPane.getTabs().clear();
             }
         } else {
             lblInformation.setVisible(true);
@@ -243,6 +260,13 @@ public class Controller {
     public void showAllTasksPane(ActionEvent actionEvent) {
         tabPane.getTabs().add(tabShowTasks);
     }
+    public void loadAllProjects(ActionEvent actionEvent) {
+        tabPane.getTabs().add(tabShowProjects);
+    }
+
+    public void loadAllSubtask(ActionEvent actionEvent) {
+        tabPane.getTabs().add(tabShowSubTasks);
+    }
 
     public void insertProjectEnter(KeyEvent keyEvent) {
         if (keyEvent.getCode().equals(KeyCode.ENTER)) {
@@ -281,6 +305,19 @@ public class Controller {
         vBoxProjects.getChildren().add(checkBox);
 
     }
+    public ObservableList<Project> getProjectList() {
+        ObservableList<Project> projectList = FXCollections.observableList(projectRepository.findAll());
+        if (projectList == null)
+            return FXCollections.observableArrayList();
+
+        return projectList;
+    }
+
+    public void loadComboBoxProject(MouseEvent mouseEvent) {
+        ObservableList<Project> projectList = FXCollections.observableArrayList(projectRepository.findAll());
+        comboProject.setItems(projectList);
+    }
+
 
     private void insertTask() {
         Task task = new Task();
@@ -292,6 +329,18 @@ public class Controller {
         checkBox.setText(task.getDescription());
         vBoxTasks.getChildren().add(checkBox);
 
+    }
+    public ObservableList<Task> getTaskList() {
+        ObservableList<Task> taskList = FXCollections.observableList(taskRepository.findAll());
+        if (taskList == null)
+            return FXCollections.observableArrayList();
+
+        return taskList;
+    }
+
+    public void loadComboBoxTask(MouseEvent mouseEvent) {
+        ObservableList<Task> tskList = FXCollections.observableArrayList(taskRepository.findAll());
+        comboTask.setItems(tskList);
     }
 
     private void insertSubTask() {
@@ -318,7 +367,7 @@ public class Controller {
 
     public void loadSubTask(Event actionEvent) {
         tabPane.getTabs().add(tabSubTask);
-        tabPane.getTabs().add(tabShowSubTasks);
+        //tabPane.getTabs().add(tabShowSubTasks);
     }
 
     public void loadProjects(Event event) {
@@ -414,6 +463,20 @@ public class Controller {
     public void Register(ActionEvent actionEvent) {
         tabPane.getTabs().clear();
         tabPane.getTabs().add(tabRegister);
+    }
+
+
+    public void admin(ActionEvent actionEvent) {
+        if (checkAdmin.isSelected()) {
+            checkDev.setSelected(false);
+        }
+    }
+
+    public void developer(ActionEvent actionEvent) {
+        if (checkDev.isSelected()) {
+            checkAdmin.setSelected(false);
+            btnInsertProject.setDisable(true);
+        }
     }
 
 
